@@ -20,6 +20,7 @@ import org.apache.hivemind.ClassResolver;
 import org.apache.hivemind.HiveMind;
 import org.apache.hivemind.util.Defense;
 import org.apache.tapestry.util.io.ResolvingObjectInputStream;
+import org.apache.tapestry.util.io.SqueezedDataSigner;
 import org.apache.tapestry.util.io.TeeOutputStream;
 
 import java.io.*;
@@ -83,7 +84,7 @@ public class PersistentPropertyDataEncoderImpl implements PersistentPropertyData
 
             String prefix = useCompressed ? GZIP_BYTESTREAM_PREFIX : BYTESTREAM_PREFIX;
 
-            return prefix + new String(encoded);
+            return SqueezedDataSigner.sign(prefix, new String(encoded));
         }
         catch (Exception ex) {
             throw new ApplicationRuntimeException(RecordMessages.encodeFailure(ex), ex);
@@ -101,9 +102,8 @@ public class PersistentPropertyDataEncoderImpl implements PersistentPropertyData
             throw new ApplicationRuntimeException(RecordMessages.unknownPrefix(prefix));
 
         try {
-            // Strip off the prefix, feed that in as a MIME stream.
-
-            byte[] decoded = Base64.decodeBase64(encoded.substring(1).getBytes());
+            // CVE-2020-17531: the signature check comes before gunzip and readObject.
+            byte[] decoded = Base64.decodeBase64(SqueezedDataSigner.verifiedBody(encoded).getBytes());
 
             InputStream is = new ByteArrayInputStream(decoded);
 

@@ -79,7 +79,7 @@ public class SerializableAdaptor implements SqueezeAdaptor
 
             String prefix = Character.toString(useCompressed ? GZIP_BYTESTREAM_PREFIX  : BYTESTREAM_PREFIX);
 
-            return prefix + new String(encoded);
+            return SqueezedDataSigner.sign(prefix, new String(encoded));
         }
         catch (Exception ex)
         {
@@ -93,9 +93,9 @@ public class SerializableAdaptor implements SqueezeAdaptor
 
         try
         {
-            // Strip off the prefix, feed that in as a MIME stream.
-
-            byte[] mimeData = encoded.substring(1).getBytes();
+            // CVE-2020-17531: this value comes from the request. Check the signature first:
+            // gunzip, class resolution and readObject must never see bytes we did not write.
+            byte[] mimeData = SqueezedDataSigner.verifiedBody(encoded).getBytes();
 
             byte[] decoded = Base64.decodeBase64(mimeData);
 

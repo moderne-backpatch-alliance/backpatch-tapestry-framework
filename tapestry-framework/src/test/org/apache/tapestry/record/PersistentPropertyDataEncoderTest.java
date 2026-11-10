@@ -30,6 +30,7 @@ import org.apache.hivemind.ClassResolver;
 import org.apache.hivemind.impl.DefaultClassResolver;
 import org.apache.hivemind.util.PropertyUtils;
 import org.apache.tapestry.BaseComponentTestCase;
+import org.apache.tapestry.util.io.SqueezedDataSigner;
 import org.testng.annotations.Test;
 
 /**
@@ -135,13 +136,13 @@ public class PersistentPropertyDataEncoderTest extends BaseComponentTestCase
         }
     }
 
-    public void testDecodeInvalid()
+    public void testDecodeInvalid() throws Exception
     {
         PersistentPropertyDataEncoder encoder = newEncoder();
 
         try
         {
-            encoder.decodePageChanges("ZZZZZZZZZZZZZZZZZZZ");
+            encoder.decodePageChanges(SqueezedDataSigner.sign("Z", "ZZZZZZZZZZZZZZZZZZ"));
             unreachable();
         }
         catch (ApplicationRuntimeException ex)
