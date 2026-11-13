@@ -1,0 +1,20 @@
+schema: osera-patch-evidence/0.1.0
+producer: moderne
+release: 4.1.6.1-backpatch-00001
+baseline: v4.1.6+backpatch.baseline
+fixes:
+  - cve: CVE-2020-17531
+    advisory_url: https://nvd.nist.gov/vuln/detail/CVE-2020-17531
+    patch_commit_url: https://github.com/moderne-backpatch-alliance/backpatch-tapestry-framework/commit/6d8b908
+    basis: original
+    artifacts:
+      - org.apache.tapestry:tapestry-framework
+    note: "New in this release; ported onto 4.1.6; fixed at 4.1.6.1-backpatch-00001 (backpatch-tapestry-framework@6d8b908). Tapestry now signs every serialized Java object it puts into a request (the `sp` parameter of external pages, hidden form values, and client-persisted page state in `state:` and `appstate:`) with HMAC-SHA256, and refuses a value whose signature does not match before decoding it (CVE-2020-17531). If your application puts objects into links, forms or client state, a value issued before the upgrade or by another JVM now shows the Exception page and logs one warning naming the CVE: a bookmarked external-page link, a form left open across a restart, or a request that reaches another node without sticky sessions. On Java 1.4, which has no HmacSHA256, a page that puts such a value into a link, form or client state fails. To keep values valid across restarts and nodes, set the system property `org.apache.tapestry.squeeze-signing-key` to the same secret on every node."
+tests:
+  commit: 6d8b908201909aea4ef9ff2f5b50719f070d85bc
+  command: mvn -B -pl tapestry-framework -am clean test, surefire 2.3 with TestNG, test failures ignored; the report decides -Dtest=<every test class but MethodSignatureTest, TestBinaryDumpOutputStream, TestResourceDigestSource>
+  runtime: openjdk version 1.8.0_382 (Zulu) for the tests, Apache Maven 3.9.16; main classes compiled by Zulu 6u42's javac at target 1.4
+  report: tapestry-framework-4.1.6.1-backpatch-00001-tests.zip
+  report_sha256: 7748dd0ddddc85d9d7c8be8dc0917494fdd100211beeaf95ac057e8fde955058
+  result: pass
+  note: "1723 tests at the patch commit, 0 of them skipped by the suite, 0 failed, 0 errors. Left out of the run as accepted exceptions: org.apache.tapestry.util.io.TestBinaryDumpOutputStream#testBasic (fixture holds the ArrayList capacity old JDKs serialized; JDK 7 and later write 3); org.apache.tapestry.util.io.TestBinaryDumpOutputStream#testOptions (fixture holds the ArrayList capacity old JDKs serialized; JDK 7 and later write 3); org.apache.tapestry.util.io.TestBinaryDumpOutputStream#testNoOffset (fixture holds the ArrayList capacity old JDKs serialized; JDK 7 and later write 3); org.apache.tapestry.util.io.TestBinaryDumpOutputStream#testNoAscii (fixture holds the ArrayList capacity old JDKs serialized; JDK 7 and later write 3); org.apache.tapestry.asset.TestResourceDigestSource#testFolderInJar (expects an old JDK's NullPointerException; JDK 8 returns an empty digest); org.apache.tapestry.enhance.MethodSignatureTest#test_Generic_Inheritance (GenericsClassInspectorImpl takes the first matching method, which can be a bridge method; depends on JVM method order; predates the fix); org.apache.tapestry.enhance.MethodSignatureTest#test_Generic_Service_Property (GenericsClassInspectorImpl takes the first matching method, which can be a bridge method; depends on JVM method order; predates the fix). Main classes compiled with Zulu 6u42's javac at the pom's source and target 1.4; test classes compiled and run on Zulu 8. surefire 2.3 has no exclude property and TestNG no method-level exclusion here, so the run names every test class except TestBinaryDumpOutputStream, TestResourceDigestSource and MethodSignatureTest, which also drops their passing tests (TestResourceDigestSource 3, MethodSignatureTest 6)."
